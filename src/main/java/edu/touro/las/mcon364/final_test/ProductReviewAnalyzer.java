@@ -1,0 +1,115 @@
+package edu.touro.las.mcon364.final_test;
+
+import java.util.*;
+import java.util.stream.*;
+
+/**
+ * Test Item - Product Review Analyzer (TreeMap + Streams + NavigableMap)
+ *
+ * Scenario: an e-commerce platform collects customer reviews. Each review
+ * contains a product category tag (e.g., "electronics", "books", "clothing").
+ * You need to count how many reviews each category has received and then
+ * answer several questions about those counts — all in sorted order.
+ *
+ * This exercise practises:
+ * - Why TreeMap gives us sorted-key iteration for free.
+ * - How Collectors.groupingBy + Collectors.counting builds a frequency map.
+ * - How NavigableMap operations (subMap, headMap, tailMap) let us slice the
+ *   sorted map without iterating manually.
+ * - How a stream pipeline can rank or filter the frequency entries.
+ *
+ * Before coding, think about:
+ * - If we used HashMap instead of TreeMap, which methods would break, and why?
+ * - What is the difference between subMap(from, to) and subMap(from, true, to, true)?
+ * - Should getTopNCategories return categories with the highest count or lowest?
+ *
+ * Requirements:
+ * - The constructor receives the list of category tags to analyze.
+ * - buildCategoryFrequencyMap() returns a TreeMap<String, Long> where every key
+ *   is a unique category and every value is how many reviews that category received.
+ * - getTopNCategories(n) returns the n categories with the most reviews, sorted
+ *   descending by count. Ties may appear in any order.
+ * - getCategoriesStartingWith(prefix) returns a sorted list of all category names
+ *   whose first character equals the given prefix character (e.g., 'e').
+ * - getMostReviewedInRange(from, to) returns the category with the highest review
+ *   count among categories in the alphabetical range [from, to] inclusive.
+ *   Return Optional.empty() if the range contains no categories.
+ *
+ * Do not use explicit loops anywhere. Use streams and collectors instead.
+ */
+public class ProductReviewAnalyzer {
+
+    private final List<String> categories;
+
+    /**
+     * Store the category tags that this analyzer will examine.
+     *
+     * Think carefully:
+     * - What should happen if null is passed?
+     * - Should this class keep the original list reference or store a defensive copy?
+     */
+    public ProductReviewAnalyzer(List<String> categories) {
+        if (categories == null) throw new IllegalArgumentException("categories must not be null");
+        this.categories = List.copyOf(categories);
+    }
+
+    /**
+     * Counts how many reviews each category received.
+     * The returned map must be sorted alphabetically by category name.
+     *
+     * @return sorted frequency map
+     */
+    public TreeMap<String, Long> buildCategoryFrequencyMap() {
+        return categories.stream()
+                .collect(Collectors.groupingBy(c -> c, TreeMap::new, Collectors.counting()));
+    }
+
+    /**
+     * Returns the n most reviewed categories, highest count first.
+     *
+     * @param n number of top categories to return
+     * @return list of category names, most reviewed first
+     */
+    public List<String> getTopNCategories(int n) {
+        return buildCategoryFrequencyMap().entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(n)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all categories whose first letter equals the given prefix letter,
+     * in alphabetical order.
+     *
+     * Hint: use a NavigableSet and subSet(from, to) with prefix+1 as the upper bound.
+     *
+     * @param prefix the starting letter (e.g., 'e')
+     * @return sorted list of matching category names
+     */
+    public List<String> getCategoriesStartingWith(char prefix) {
+        String from = String.valueOf(prefix);
+        String to   = String.valueOf((char) (prefix + 1));
+        return new ArrayList<>(buildCategoryFrequencyMap()
+                .subMap(from, true, to, false)
+                .navigableKeySet());
+    }
+
+    /**
+     * Finds the most reviewed category in the alphabetical range [from, to] inclusive.
+     *
+     * Hint: use subMap(from, true, to, true) on the frequency map, then stream its
+     * entries and find the max by value.
+     *
+     * @param from lower bound category name (inclusive)
+     * @param to   upper bound category name (inclusive)
+     * @return Optional containing the most reviewed category in range, or empty if none
+     */
+    public Optional<String> getMostReviewedInRange(String from, String to) {
+        return buildCategoryFrequencyMap()
+                .subMap(from, true, to, true)
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey);
+    }
+}

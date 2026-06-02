@@ -2,9 +2,9 @@ name: Autograding Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, prep ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, prep ]
   workflow_dispatch:
 
 permissions:
@@ -26,425 +26,592 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Copy autograder test files
-        run: |
-          cp .github/autograder/InventoryManagerTest.java src/test/java/edu/touro/las/mcon364/test2/InventoryManagerTest.java
-          cp .github/autograder/TaskDispatcherTest.java src/test/java/edu/touro/las/mcon364/test2/TaskDispatcherTest.java
-          cp .github/autograder/ParallelReportBuilderTest.java src/test/java/edu/touro/las/mcon364/test2/ParallelReportBuilderTest.java
+      - name: Compile project
+        run: mvn -B -ntp test-compile --file pom.xml
 
       # ══════════════════════════════════════════════════════════════════════
-      # Problem 1 — InventoryManager  (25 pts total)
-      # basic tests × 1 pt each (13 pts) + concurrency tests × 4 pts (12 pts)
+      # IncidentAnalyzerTest  (16 tests × 2 pts = 32 pts)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: IM - addStock increases stock
-        id: im-add-stock-increases
+      - name: IA - constructorRejectsNullList
+        id: ia-constructor-null
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - addStock increases stock"
+          test-name: "IA - constructorRejectsNullList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#addStockIncreasesStockForItem"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#constructorRejectsNullList"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - addStock accumulates
-        id: im-add-stock-accumulates
+      - name: IA - constructorMakesDefensiveCopy
+        id: ia-constructor-defensive
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - addStock accumulates"
+          test-name: "IA - constructorMakesDefensiveCopy"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#addStockAccumulatesAcrossMultipleCalls"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#constructorMakesDefensiveCopy"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - getStock returns zero for unknown
-        id: im-get-stock-zero
+      - name: IA - getClosedCountReturnsZeroWhenNoneResolved
+        id: ia-closed-zero
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - getStock returns zero for unknown"
+          test-name: "IA - getClosedCountReturnsZeroWhenNoneResolved"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#getStockReturnsZeroForUnknownItem"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getClosedCountReturnsZeroWhenNoneResolved"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - addStock throws on zero qty
-        id: im-add-stock-throws-zero
+      - name: IA - getClosedCountCountsOnlyResolvedIncidents
+        id: ia-closed-only-resolved
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - addStock throws on zero qty"
+          test-name: "IA - getClosedCountCountsOnlyResolvedIncidents"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#addStockThrowsOnZeroQty"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getClosedCountCountsOnlyResolvedIncidents"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - addStock throws on negative qty
-        id: im-add-stock-throws-negative
+      - name: IA - getClosedCountReturnsAllWhenAllResolved
+        id: ia-closed-all
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - addStock throws on negative qty"
+          test-name: "IA - getClosedCountReturnsAllWhenAllResolved"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#addStockThrowsOnNegativeQty"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getClosedCountReturnsAllWhenAllResolved"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - removeStock true when sufficient
-        id: im-remove-stock-true
+      - name: IA - getAverageTimeToCloseReturnsZeroWhenNoClosedIncidents
+        id: ia-avg-zero
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - removeStock true when sufficient"
+          test-name: "IA - getAverageTimeToCloseReturnsZeroWhenNoClosedIncidents"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#removeStockReturnsTrueWhenStockSufficient"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getAverageTimeToCloseReturnsZeroWhenNoClosedIncidents"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - removeStock false when insufficient
-        id: im-remove-stock-false
+      - name: IA - getAverageTimeToCloseIgnoresOpenIncidents
+        id: ia-avg-ignores-open
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - removeStock false when insufficient"
+          test-name: "IA - getAverageTimeToCloseIgnoresOpenIncidents"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#removeStockReturnsFalseWhenInsufficientStock"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getAverageTimeToCloseIgnoresOpenIncidents"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - removeStock does not go below zero
-        id: im-remove-stock-no-negative
+      - name: IA - getAverageTimeToCloseWithSingleClosedIncident
+        id: ia-avg-single
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - removeStock does not go below zero"
+          test-name: "IA - getAverageTimeToCloseWithSingleClosedIncident"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#removeStockDoesNotGoBelowZero"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getAverageTimeToCloseWithSingleClosedIncident"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - removeStock throws on zero qty
-        id: im-remove-stock-throws-zero
+      - name: IA - getAverageTimeToCloseOnEmptyList
+        id: ia-avg-empty
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - removeStock throws on zero qty"
+          test-name: "IA - getAverageTimeToCloseOnEmptyList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#removeStockThrowsOnZeroQty"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getAverageTimeToCloseOnEmptyList"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - totalUnitsAdded reflects all additions
-        id: im-total-reflects
+      - name: IA - getCountByCategoryGroupsAndCountsCorrectly
+        id: ia-category-groups
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - totalUnitsAdded reflects all additions"
+          test-name: "IA - getCountByCategoryGroupsAndCountsCorrectly"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#totalUnitsAddedReflectsAllAdditions"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCountByCategoryGroupsAndCountsCorrectly"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - totalUnitsAdded not affected by removals
-        id: im-total-not-affected
+      - name: IA - getCountByCategoryCountsAllRegardlessOfResolvedStatus
+        id: ia-category-regardless
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - totalUnitsAdded not affected by removals"
+          test-name: "IA - getCountByCategoryCountsAllRegardlessOfResolvedStatus"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#totalUnitsAddedNotAffectedByRemovals"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCountByCategoryCountsAllRegardlessOfResolvedStatus"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - snapshot is unmodifiable
-        id: im-snapshot-unmodifiable
+      - name: IA - getCountByCategoryReturnsUnmodifiableMap
+        id: ia-category-unmodifiable
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - snapshot is unmodifiable"
+          test-name: "IA - getCountByCategoryReturnsUnmodifiableMap"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#getSnapshotIsUnmodifiable"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCountByCategoryReturnsUnmodifiableMap"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - snapshot contains current inventory
-        id: im-snapshot-contains
+      - name: IA - getCountByCategoryReturnsEmptyMapForEmptyList
+        id: ia-category-empty-list
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - snapshot contains current inventory"
+          test-name: "IA - getCountByCategoryReturnsEmptyMapForEmptyList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#getSnapshotContainsCurrentInventory"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCountByCategoryReturnsEmptyMapForEmptyList"
           timeout: 10
-          max-score: 1
+          max-score: 2
 
-      - name: IM - concurrent addStock no lost updates
-        id: im-concurrent-add
+      - name: IA - getCriticalOpenIncidentsReturnsOnlyOpenHighPriority
+        id: ia-critical-only-open-high
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - concurrent addStock no lost updates"
+          test-name: "IA - getCriticalOpenIncidentsReturnsOnlyOpenHighPriority"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#concurrentAddStockDoesNotLoseUpdates"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCriticalOpenIncidentsReturnsOnlyOpenHighPriority"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: IM - concurrent removeStock never negative
-        id: im-concurrent-remove
+      - name: IA - getCriticalOpenIncidentsReturnsEmptyListWhenNoneMatch
+        id: ia-critical-none-match
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - concurrent removeStock never negative"
+          test-name: "IA - getCriticalOpenIncidentsReturnsEmptyListWhenNoneMatch"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#concurrentRemoveNeverGoesNegative"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCriticalOpenIncidentsReturnsEmptyListWhenNoneMatch"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: IM - totalUnitsAdded accurate under concurrency
-        id: im-total-concurrent
+      - name: IA - getCriticalOpenIncidentsReturnsUnmodifiableList
+        id: ia-critical-unmodifiable
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "IM - totalUnitsAdded accurate under concurrency"
+          test-name: "IA - getCriticalOpenIncidentsReturnsUnmodifiableList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=InventoryManagerTest#totalUnitsAddedIsAccurateUnderConcurrency"
+          command: "mvn -B -ntp test -Dtest=IncidentAnalyzerTest#getCriticalOpenIncidentsReturnsUnmodifiableList"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
       # ══════════════════════════════════════════════════════════════════════
-      # Problem 2 — TaskDispatcher  (35 pts total)
+      # ProductReviewAnalyzerTest  (18 tests × 2 pts = 36 pts)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: TD - dispatch returns one future per task
-        id: td-futures-count
+      - name: PRA - constructorThrowsOnNullInput
+        id: pra-constructor-null
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - dispatch returns one future per task"
+          test-name: "PRA - constructorThrowsOnNullInput"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#dispatchReturnsOneFuturePerTask"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#constructorThrowsOnNullInput"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: TD - dispatch upper-cases each task
-        id: td-upper-case
+      - name: PRA - constructorDefendsAgainstExternalMutation
+        id: pra-constructor-defensive
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - dispatch upper-cases each task"
+          test-name: "PRA - constructorDefendsAgainstExternalMutation"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#dispatchUpperCasesEachTask"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#constructorDefendsAgainstExternalMutation"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: TD - dispatch does not block caller
-        id: td-no-block
+      - name: PRA - frequencyMapIsEmptyForEmptyInput
+        id: pra-freq-empty
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - dispatch does not block caller"
+          test-name: "PRA - frequencyMapIsEmptyForEmptyInput"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#dispatchDoesNotBlockCaller"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#frequencyMapIsEmptyForEmptyInput"
           timeout: 10
-          max-score: 5
+          max-score: 2
 
-      - name: TD - completedCount matches results size
-        id: td-count-matches
+      - name: PRA - frequencyMapCountsCorrectly
+        id: pra-freq-counts
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - completedCount matches results size"
+          test-name: "PRA - frequencyMapCountsCorrectly"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#completedCountMatchesResultsSize"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#frequencyMapCountsCorrectly"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: TD - results contain all processed values
-        id: td-results-all
+      - name: PRA - frequencyMapIsSortedAlphabetically
+        id: pra-freq-sorted
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - results contain all processed values"
+          test-name: "PRA - frequencyMapIsSortedAlphabetically"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#resultsContainAllProcessedValues"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#frequencyMapIsSortedAlphabetically"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: TD - getResults returns unmodifiable copy
-        id: td-results-unmodifiable
+      - name: PRA - frequencyMapReturnTypeIsTreeMap
+        id: pra-freq-treemap
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - getResults returns unmodifiable copy"
+          test-name: "PRA - frequencyMapReturnTypeIsTreeMap"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#getResultsReturnsUnmodifiableCopy"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#frequencyMapReturnTypeIsTreeMap"
           timeout: 10
-          max-score: 4
+          max-score: 2
 
-      - name: TD - no results lost under concurrency
-        id: td-concurrent-no-loss
+      - name: PRA - topNReturnsHighestCountFirst
+        id: pra-topn-highest
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - no results lost under concurrency"
+          test-name: "PRA - topNReturnsHighestCountFirst"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#noResultsLostUnderConcurrency"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#topNReturnsHighestCountFirst"
           timeout: 10
-          max-score: 5
+          max-score: 2
 
-      - name: TD - thread pool bounded by POOL_SIZE
-        id: td-pool-bounded
+      - name: PRA - topNWithNLargerThanSizeReturnsAll
+        id: pra-topn-larger
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "TD - thread pool bounded by POOL_SIZE"
+          test-name: "PRA - topNWithNLargerThanSizeReturnsAll"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=TaskDispatcherTest#threadPoolIsBoundedByPoolSize"
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#topNWithNLargerThanSizeReturnsAll"
           timeout: 10
-          max-score: 5
+          max-score: 2
+
+      - name: PRA - topNWithZeroReturnsEmptyList
+        id: pra-topn-zero
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - topNWithZeroReturnsEmptyList"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#topNWithZeroReturnsEmptyList"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - topNOnEmptyInputReturnsEmptyList
+        id: pra-topn-empty
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - topNOnEmptyInputReturnsEmptyList"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#topNOnEmptyInputReturnsEmptyList"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - categoriesStartingWithReturnsCorrectEntries
+        id: pra-starts-correct
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - categoriesStartingWithReturnsCorrectEntries"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#categoriesStartingWithReturnsCorrectEntries"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - categoriesStartingWithReturnsSortedList
+        id: pra-starts-sorted
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - categoriesStartingWithReturnsSortedList"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#categoriesStartingWithReturnsSortedList"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - categoriesStartingWithReturnsEmptyWhenNoMatch
+        id: pra-starts-empty
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - categoriesStartingWithReturnsEmptyWhenNoMatch"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#categoriesStartingWithReturnsEmptyWhenNoMatch"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - categoriesStartingWithDoesNotIncludeOtherLetters
+        id: pra-starts-no-other
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - categoriesStartingWithDoesNotIncludeOtherLetters"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#categoriesStartingWithDoesNotIncludeOtherLetters"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - mostReviewedInRangeReturnsCorrectCategory
+        id: pra-range-correct
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - mostReviewedInRangeReturnsCorrectCategory"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#mostReviewedInRangeReturnsCorrectCategory"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - mostReviewedInRangeIsInclusiveOnBothEnds
+        id: pra-range-inclusive
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - mostReviewedInRangeIsInclusiveOnBothEnds"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#mostReviewedInRangeIsInclusiveOnBothEnds"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - mostReviewedInRangeReturnsEmptyWhenRangeHasNoCategories
+        id: pra-range-no-cats
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - mostReviewedInRangeReturnsEmptyWhenRangeHasNoCategories"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#mostReviewedInRangeReturnsEmptyWhenRangeHasNoCategories"
+          timeout: 10
+          max-score: 2
+
+      - name: PRA - mostReviewedInRangeWithFullRangeReturnsOverallMost
+        id: pra-range-full
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "PRA - mostReviewedInRangeWithFullRangeReturnsOverallMost"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=ProductReviewAnalyzerTest#mostReviewedInRangeWithFullRangeReturnsOverallMost"
+          timeout: 10
+          max-score: 2
 
       # ══════════════════════════════════════════════════════════════════════
-      # Problem 3 — ParallelReportBuilder  (40 pts total)
+      # ConcurrentAuctionTrackerTest  (9 tests × 2 pts = 18 pts)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: PRB - throws on null batches
-        id: prb-null
+      - name: CAT - totalBidsIsZeroInitially
+        id: cat-total-zero
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - throws on null batches"
+          test-name: "CAT - totalBidsIsZeroInitially"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#throwsOnNullBatches"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#totalBidsIsZeroInitially"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - throws on empty batches
-        id: prb-empty
+      - name: CAT - submitBidIncrementsTotalBids
+        id: cat-submit-increments
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - throws on empty batches"
+          test-name: "CAT - submitBidIncrementsTotalBids"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#throwsOnEmptyBatches"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#submitBidIncrementsTotalBids"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - throws on zero workers
-        id: prb-zero-workers
+      - name: CAT - getTopNWhenEmptyReturnsEmptyList
+        id: cat-topn-empty
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - throws on zero workers"
+          test-name: "CAT - getTopNWhenEmptyReturnsEmptyList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#throwsOnZeroWorkers"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#getTopNWhenEmptyReturnsEmptyList"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - generateReport returns non-null
-        id: prb-non-null
+      - name: CAT - getTopNWithZeroReturnsEmptyList
+        id: cat-topn-zero
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - generateReport returns non-null"
+          test-name: "CAT - getTopNWithZeroReturnsEmptyList"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#generateReportReturnsNonNull"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#getTopNWithZeroReturnsEmptyList"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - totalAmount is correct
-        id: prb-total-amount
+      - name: CAT - getTopNReturnsHighestBidsFirst
+        id: cat-topn-highest
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - totalAmount is correct"
+          test-name: "CAT - getTopNReturnsHighestBidsFirst"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#totalAmountIsCorrect"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#getTopNReturnsHighestBidsFirst"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - totalCount is correct
-        id: prb-total-count
+      - name: CAT - getTopNWithNLargerThanSizeReturnsAll
+        id: cat-topn-larger
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - totalCount is correct"
+          test-name: "CAT - getTopNWithNLargerThanSizeReturnsAll"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#totalCountIsCorrect"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#getTopNWithNLargerThanSizeReturnsAll"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - globalMax is correct
-        id: prb-global-max
+      - name: CAT - getTopNIsImmutable
+        id: cat-topn-immutable
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - globalMax is correct"
+          test-name: "CAT - getTopNIsImmutable"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#globalMaxIsCorrect"
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#getTopNIsImmutable"
           timeout: 10
-          max-score: 3
+          max-score: 2
 
-      - name: PRB - globalMin is correct
-        id: prb-global-min
+      - name: CAT - runSimulationSubmitsCorrectTotalCount
+        id: cat-sim-total
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - globalMin is correct"
+          test-name: "CAT - runSimulationSubmitsCorrectTotalCount"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#globalMinIsCorrect"
-          timeout: 10
-          max-score: 3
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#runSimulationSubmitsCorrectTotalCount"
+          timeout: 30
+          max-score: 2
 
-      - name: PRB - batchesProcessed equals input size
-        id: prb-batches-processed
+      - name: CAT - runSimulationWithSingleBidderStillWorks
+        id: cat-sim-single
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - batchesProcessed equals input size"
+          test-name: "CAT - runSimulationWithSingleBidderStillWorks"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#batchesProcessedEqualsInputSize"
-          timeout: 10
-          max-score: 3
+          command: "mvn -B -ntp test -Dtest=ConcurrentAuctionTrackerTest#runSimulationWithSingleBidderStillWorks"
+          timeout: 30
+          max-score: 2
 
-      - name: PRB - getProcessedBatchCount matches summary
-        id: prb-get-processed-count
-        uses: classroom-resources/autograding-command-grader@v1
-        with:
-          test-name: "PRB - getProcessedBatchCount matches summary"
-          setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#getProcessedBatchCountMatchesSummary"
-          timeout: 10
-          max-score: 3
+      # ══════════════════════════════════════════════════════════════════════
+      # TelemetryProcessorTest  (8 tests = 14 pts)
+      #   init checks: 1 pt each (2 pts)
+      #   substantive: 2 pts each (12 pts)
+      # ══════════════════════════════════════════════════════════════════════
 
-      - name: PRB - single batch summary correct
-        id: prb-single-batch
+      - name: TP - totalProcessedIsZeroInitially
+        id: tp-processed-zero
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - single batch summary correct"
+          test-name: "TP - totalProcessedIsZeroInitially"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#singleBatchSummaryIsCorrect"
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#totalProcessedIsZeroInitially"
           timeout: 10
-          max-score: 5
+          max-score: 1
 
-      - name: PRB - large parallel run correct total
-        id: prb-large-parallel
+      - name: TP - statsAreEmptyInitially
+        id: tp-stats-empty
         uses: classroom-resources/autograding-command-grader@v1
         with:
-          test-name: "PRB - large parallel run correct total"
+          test-name: "TP - statsAreEmptyInitially"
           setup-command: ""
-          command: "mvn -B -ntp test -Dtest=ParallelReportBuilderTest#largeParallelRunProducesCorrectTotal"
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#statsAreEmptyInitially"
           timeout: 10
-          max-score: 5
+          max-score: 1
+
+      - name: TP - startWithZeroWorkersThrows
+        id: tp-start-zero-throws
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - startWithZeroWorkersThrows"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#startWithZeroWorkersThrows"
+          timeout: 10
+          max-score: 2
+
+      - name: TP - startWithNegativeWorkersThrows
+        id: tp-start-neg-throws
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - startWithNegativeWorkersThrows"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#startWithNegativeWorkersThrows"
+          timeout: 10
+          max-score: 2
+
+      - name: TP - singleWorkerProcessesAllEvents
+        id: tp-single-worker
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - singleWorkerProcessesAllEvents"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#singleWorkerProcessesAllEvents"
+          timeout: 30
+          max-score: 2
+
+      - name: TP - multipleWorkersProcessAllEvents
+        id: tp-multi-workers
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - multipleWorkersProcessAllEvents"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#multipleWorkersProcessAllEvents"
+          timeout: 30
+          max-score: 2
+
+      - name: TP - statsAverageIsCorrect
+        id: tp-stats-avg
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - statsAverageIsCorrect"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#statsAverageIsCorrect"
+          timeout: 30
+          max-score: 2
+
+      - name: TP - concurrentSubmissionsAreAllProcessed
+        id: tp-concurrent
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "TP - concurrentSubmissionsAreAllProcessed"
+          setup-command: ""
+          command: "mvn -B -ntp test -Dtest=TelemetryProcessorTest#concurrentSubmissionsAreAllProcessed"
+          timeout: 30
+          max-score: 2
 
       # ── Reporter ─────────────────────────────────────────────────────────────
       - name: Autograding Reporter
         if: always()
         uses: classroom-resources/autograding-grading-reporter@v1
         env:
-          IM-ADD-STOCK-INCREASES_RESULTS: "${{ steps.im-add-stock-increases.outputs.result }}"
-          IM-ADD-STOCK-ACCUMULATES_RESULTS: "${{ steps.im-add-stock-accumulates.outputs.result }}"
-          IM-GET-STOCK-ZERO_RESULTS: "${{ steps.im-get-stock-zero.outputs.result }}"
-          IM-ADD-STOCK-THROWS-ZERO_RESULTS: "${{ steps.im-add-stock-throws-zero.outputs.result }}"
-          IM-ADD-STOCK-THROWS-NEGATIVE_RESULTS: "${{ steps.im-add-stock-throws-negative.outputs.result }}"
-          IM-REMOVE-STOCK-TRUE_RESULTS: "${{ steps.im-remove-stock-true.outputs.result }}"
-          IM-REMOVE-STOCK-FALSE_RESULTS: "${{ steps.im-remove-stock-false.outputs.result }}"
-          IM-REMOVE-STOCK-NO-NEGATIVE_RESULTS: "${{ steps.im-remove-stock-no-negative.outputs.result }}"
-          IM-REMOVE-STOCK-THROWS-ZERO_RESULTS: "${{ steps.im-remove-stock-throws-zero.outputs.result }}"
-          IM-TOTAL-REFLECTS_RESULTS: "${{ steps.im-total-reflects.outputs.result }}"
-          IM-TOTAL-NOT-AFFECTED_RESULTS: "${{ steps.im-total-not-affected.outputs.result }}"
-          IM-SNAPSHOT-UNMODIFIABLE_RESULTS: "${{ steps.im-snapshot-unmodifiable.outputs.result }}"
-          IM-SNAPSHOT-CONTAINS_RESULTS: "${{ steps.im-snapshot-contains.outputs.result }}"
-          IM-CONCURRENT-ADD_RESULTS: "${{ steps.im-concurrent-add.outputs.result }}"
-          IM-CONCURRENT-REMOVE_RESULTS: "${{ steps.im-concurrent-remove.outputs.result }}"
-          IM-TOTAL-CONCURRENT_RESULTS: "${{ steps.im-total-concurrent.outputs.result }}"
-          TD-FUTURES-COUNT_RESULTS: "${{ steps.td-futures-count.outputs.result }}"
-          TD-UPPER-CASE_RESULTS: "${{ steps.td-upper-case.outputs.result }}"
-          TD-NO-BLOCK_RESULTS: "${{ steps.td-no-block.outputs.result }}"
-          TD-COUNT-MATCHES_RESULTS: "${{ steps.td-count-matches.outputs.result }}"
-          TD-RESULTS-ALL_RESULTS: "${{ steps.td-results-all.outputs.result }}"
-          TD-RESULTS-UNMODIFIABLE_RESULTS: "${{ steps.td-results-unmodifiable.outputs.result }}"
-          TD-CONCURRENT-NO-LOSS_RESULTS: "${{ steps.td-concurrent-no-loss.outputs.result }}"
-          TD-POOL-BOUNDED_RESULTS: "${{ steps.td-pool-bounded.outputs.result }}"
-          PRB-NULL_RESULTS: "${{ steps.prb-null.outputs.result }}"
-          PRB-EMPTY_RESULTS: "${{ steps.prb-empty.outputs.result }}"
-          PRB-ZERO-WORKERS_RESULTS: "${{ steps.prb-zero-workers.outputs.result }}"
-          PRB-NON-NULL_RESULTS: "${{ steps.prb-non-null.outputs.result }}"
-          PRB-TOTAL-AMOUNT_RESULTS: "${{ steps.prb-total-amount.outputs.result }}"
-          PRB-TOTAL-COUNT_RESULTS: "${{ steps.prb-total-count.outputs.result }}"
-          PRB-GLOBAL-MAX_RESULTS: "${{ steps.prb-global-max.outputs.result }}"
-          PRB-GLOBAL-MIN_RESULTS: "${{ steps.prb-global-min.outputs.result }}"
-          PRB-BATCHES-PROCESSED_RESULTS: "${{ steps.prb-batches-processed.outputs.result }}"
-          PRB-GET-PROCESSED-COUNT_RESULTS: "${{ steps.prb-get-processed-count.outputs.result }}"
-          PRB-SINGLE-BATCH_RESULTS: "${{ steps.prb-single-batch.outputs.result }}"
-          PRB-LARGE-PARALLEL_RESULTS: "${{ steps.prb-large-parallel.outputs.result }}"
+          IA-CONSTRUCTOR-NULL_RESULTS: "${{ steps.ia-constructor-null.outputs.result }}"
+          IA-CONSTRUCTOR-DEFENSIVE_RESULTS: "${{ steps.ia-constructor-defensive.outputs.result }}"
+          IA-CLOSED-ZERO_RESULTS: "${{ steps.ia-closed-zero.outputs.result }}"
+          IA-CLOSED-ONLY-RESOLVED_RESULTS: "${{ steps.ia-closed-only-resolved.outputs.result }}"
+          IA-CLOSED-ALL_RESULTS: "${{ steps.ia-closed-all.outputs.result }}"
+          IA-AVG-ZERO_RESULTS: "${{ steps.ia-avg-zero.outputs.result }}"
+          IA-AVG-IGNORES-OPEN_RESULTS: "${{ steps.ia-avg-ignores-open.outputs.result }}"
+          IA-AVG-SINGLE_RESULTS: "${{ steps.ia-avg-single.outputs.result }}"
+          IA-AVG-EMPTY_RESULTS: "${{ steps.ia-avg-empty.outputs.result }}"
+          IA-CATEGORY-GROUPS_RESULTS: "${{ steps.ia-category-groups.outputs.result }}"
+          IA-CATEGORY-REGARDLESS_RESULTS: "${{ steps.ia-category-regardless.outputs.result }}"
+          IA-CATEGORY-UNMODIFIABLE_RESULTS: "${{ steps.ia-category-unmodifiable.outputs.result }}"
+          IA-CATEGORY-EMPTY-LIST_RESULTS: "${{ steps.ia-category-empty-list.outputs.result }}"
+          IA-CRITICAL-ONLY-OPEN-HIGH_RESULTS: "${{ steps.ia-critical-only-open-high.outputs.result }}"
+          IA-CRITICAL-NONE-MATCH_RESULTS: "${{ steps.ia-critical-none-match.outputs.result }}"
+          IA-CRITICAL-UNMODIFIABLE_RESULTS: "${{ steps.ia-critical-unmodifiable.outputs.result }}"
+          PRA-CONSTRUCTOR-NULL_RESULTS: "${{ steps.pra-constructor-null.outputs.result }}"
+          PRA-CONSTRUCTOR-DEFENSIVE_RESULTS: "${{ steps.pra-constructor-defensive.outputs.result }}"
+          PRA-FREQ-EMPTY_RESULTS: "${{ steps.pra-freq-empty.outputs.result }}"
+          PRA-FREQ-COUNTS_RESULTS: "${{ steps.pra-freq-counts.outputs.result }}"
+          PRA-FREQ-SORTED_RESULTS: "${{ steps.pra-freq-sorted.outputs.result }}"
+          PRA-FREQ-TREEMAP_RESULTS: "${{ steps.pra-freq-treemap.outputs.result }}"
+          PRA-TOPN-HIGHEST_RESULTS: "${{ steps.pra-topn-highest.outputs.result }}"
+          PRA-TOPN-LARGER_RESULTS: "${{ steps.pra-topn-larger.outputs.result }}"
+          PRA-TOPN-ZERO_RESULTS: "${{ steps.pra-topn-zero.outputs.result }}"
+          PRA-TOPN-EMPTY_RESULTS: "${{ steps.pra-topn-empty.outputs.result }}"
+          PRA-STARTS-CORRECT_RESULTS: "${{ steps.pra-starts-correct.outputs.result }}"
+          PRA-STARTS-SORTED_RESULTS: "${{ steps.pra-starts-sorted.outputs.result }}"
+          PRA-STARTS-EMPTY_RESULTS: "${{ steps.pra-starts-empty.outputs.result }}"
+          PRA-STARTS-NO-OTHER_RESULTS: "${{ steps.pra-starts-no-other.outputs.result }}"
+          PRA-RANGE-CORRECT_RESULTS: "${{ steps.pra-range-correct.outputs.result }}"
+          PRA-RANGE-INCLUSIVE_RESULTS: "${{ steps.pra-range-inclusive.outputs.result }}"
+          PRA-RANGE-NO-CATS_RESULTS: "${{ steps.pra-range-no-cats.outputs.result }}"
+          PRA-RANGE-FULL_RESULTS: "${{ steps.pra-range-full.outputs.result }}"
+          CAT-TOTAL-ZERO_RESULTS: "${{ steps.cat-total-zero.outputs.result }}"
+          CAT-SUBMIT-INCREMENTS_RESULTS: "${{ steps.cat-submit-increments.outputs.result }}"
+          CAT-TOPN-EMPTY_RESULTS: "${{ steps.cat-topn-empty.outputs.result }}"
+          CAT-TOPN-ZERO_RESULTS: "${{ steps.cat-topn-zero.outputs.result }}"
+          CAT-TOPN-HIGHEST_RESULTS: "${{ steps.cat-topn-highest.outputs.result }}"
+          CAT-TOPN-LARGER_RESULTS: "${{ steps.cat-topn-larger.outputs.result }}"
+          CAT-TOPN-IMMUTABLE_RESULTS: "${{ steps.cat-topn-immutable.outputs.result }}"
+          CAT-SIM-TOTAL_RESULTS: "${{ steps.cat-sim-total.outputs.result }}"
+          CAT-SIM-SINGLE_RESULTS: "${{ steps.cat-sim-single.outputs.result }}"
+          TP-PROCESSED-ZERO_RESULTS: "${{ steps.tp-processed-zero.outputs.result }}"
+          TP-STATS-EMPTY_RESULTS: "${{ steps.tp-stats-empty.outputs.result }}"
+          TP-START-ZERO-THROWS_RESULTS: "${{ steps.tp-start-zero-throws.outputs.result }}"
+          TP-START-NEG-THROWS_RESULTS: "${{ steps.tp-start-neg-throws.outputs.result }}"
+          TP-SINGLE-WORKER_RESULTS: "${{ steps.tp-single-worker.outputs.result }}"
+          TP-MULTI-WORKERS_RESULTS: "${{ steps.tp-multi-workers.outputs.result }}"
+          TP-STATS-AVG_RESULTS: "${{ steps.tp-stats-avg.outputs.result }}"
+          TP-CONCURRENT_RESULTS: "${{ steps.tp-concurrent.outputs.result }}"
         with:
-          runners: im-add-stock-increases,im-add-stock-accumulates,im-get-stock-zero,im-add-stock-throws-zero,im-add-stock-throws-negative,im-remove-stock-true,im-remove-stock-false,im-remove-stock-no-negative,im-remove-stock-throws-zero,im-total-reflects,im-total-not-affected,im-snapshot-unmodifiable,im-snapshot-contains,im-concurrent-add,im-concurrent-remove,im-total-concurrent,td-futures-count,td-upper-case,td-no-block,td-count-matches,td-results-all,td-results-unmodifiable,td-concurrent-no-loss,td-pool-bounded,prb-null,prb-empty,prb-zero-workers,prb-non-null,prb-total-amount,prb-total-count,prb-global-max,prb-global-min,prb-batches-processed,prb-get-processed-count,prb-single-batch,prb-large-parallel
+          runners: ia-constructor-null,ia-constructor-defensive,ia-closed-zero,ia-closed-only-resolved,ia-closed-all,ia-avg-zero,ia-avg-ignores-open,ia-avg-single,ia-avg-empty,ia-category-groups,ia-category-regardless,ia-category-unmodifiable,ia-category-empty-list,ia-critical-only-open-high,ia-critical-none-match,ia-critical-unmodifiable,pra-constructor-null,pra-constructor-defensive,pra-freq-empty,pra-freq-counts,pra-freq-sorted,pra-freq-treemap,pra-topn-highest,pra-topn-larger,pra-topn-zero,pra-topn-empty,pra-starts-correct,pra-starts-sorted,pra-starts-empty,pra-starts-no-other,pra-range-correct,pra-range-inclusive,pra-range-no-cats,pra-range-full,cat-total-zero,cat-submit-increments,cat-topn-empty,cat-topn-zero,cat-topn-highest,cat-topn-larger,cat-topn-immutable,cat-sim-total,cat-sim-single,tp-processed-zero,tp-stats-empty,tp-start-zero-throws,tp-start-neg-throws,tp-single-worker,tp-multi-workers,tp-stats-avg,tp-concurrent

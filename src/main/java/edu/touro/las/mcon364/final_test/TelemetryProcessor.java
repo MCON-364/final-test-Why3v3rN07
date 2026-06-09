@@ -1,11 +1,6 @@
 package edu.touro.las.mcon364.final_test;
 
 import java.util.DoubleSummaryStatistics;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * TelemetryProcessor – concurrent sensor-data pipeline
@@ -32,20 +27,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * Thread-safety requirements:
  * - submit() and the read methods (getTotalProcessed, getStats) may be called
  *   concurrently from multiple threads without data loss or corruption.
- * - Use java.util.concurrent building blocks — BlockingQueue, ExecutorService,
- *   AtomicInteger, AtomicReference, etc. Do not use raw synchronized blocks.
+ * - Use java.util.concurrent building blocks. Do not use raw synchronized blocks.
  */
 public class TelemetryProcessor {
 
-    // ── suggested fields (you may add more, but do not remove these) ──────────
-
-    private final BlockingQueue<TelemetryEvent> queue = new LinkedBlockingQueue<>();
-    private final AtomicInteger totalProcessed = new AtomicInteger(0);
-    private final AtomicReference<DoubleSummaryStatistics> stats =
-            new AtomicReference<>(new DoubleSummaryStatistics());
-
-    private volatile boolean running = false;
-    private ExecutorService executor;
+    // ── declare whatever fields you need ─────────────────────────────────────
 
     // ── public API ────────────────────────────────────────────────────────────
 
@@ -62,15 +48,7 @@ public class TelemetryProcessor {
     }
 
     /**
-     * Start {@code workerCount} worker threads that drain and process the queue.
-     *
-     * Each worker should loop, pulling events from the queue and recording
-     * their metric into the running statistics. Calling this method a second
-     * time must be a no-op (idempotent).
-     *
-     * Hint: use {@link java.util.concurrent.Executors#newFixedThreadPool(int)}
-     * and have each worker call a private workerLoop() method.
-     *
+     * Start processing events.
      * @param workerCount number of worker threads to create; must be ≥ 1
      * @throws IllegalArgumentException if workerCount ≤ 0
      */
@@ -79,9 +57,7 @@ public class TelemetryProcessor {
     }
 
     /**
-     * Signal all workers to stop, wait for them to terminate, then drain and
-     * process any events remaining in the queue before returning.
-     *
+     * Stop processing events.
      * @throws InterruptedException if the calling thread is interrupted while waiting
      */
     public void stop() throws InterruptedException {

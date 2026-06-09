@@ -1,5 +1,6 @@
 package edu.touro.las.mcon364.final_test;
 
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -27,6 +28,17 @@ class ConcurrentAuctionTrackerTest {
         tracker.submitBid(bid("Alice", 500));
         tracker.submitBid(bid("Bob", 700));
         assertEquals(2, tracker.getTotalBids());
+        assertEquals(700, tracker.getTopN(1).getFirst().amount());
+    }
+
+    @Test
+    void submittedBidsAreSortedHighestToLowest() {
+        ConcurrentAuctionTracker tracker = new ConcurrentAuctionTracker();
+        tracker.submitBid(bid("Alice", 500));
+        tracker.submitBid(bid("Bob", 700));
+        tracker.submitBid(bid("Charlie", 300));
+        assertEquals(700, tracker.getTopN(1).getFirst().amount());
+        assertEquals(300, tracker.getTopN(3).getLast().amount());
     }
 
     // ── getTopN ───────────────────────────────────────────────────────────────
